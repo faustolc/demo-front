@@ -9,6 +9,7 @@ export interface User {
   roles: Array<string>;
   email: string;
   phone: string;
+  picture_profile: string;
   created_at: string;
   updated_at: string;
 }

@@ -19,14 +19,23 @@
   </button>
 
   <!-- User info and logout -->
-  <span class="user-info" *ngIf="currentUser$ | async as user">
-    Welcome, {{ user.name }}!
-  </span>
+  <ng-container *ngIf="currentUser$ | async as user">
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User menu">
+      <img class="profile-avatar" [src]="user.picture_profile" alt="picture_profile">
+    </button>
 
-  <button mat-button (click)="logout()" color="accent">
-    <mat-icon>logout</mat-icon>
-    Logout
-  </button>
+    <mat-menu #userMenu="matMenu" xPosition="before">
+      <div class="user-info-menu">
+        <span>{{ user.name }}</span>
+        <span class="email">{{ user.email }}</span>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </ng-container>
 </mat-toolbar>
 
 <div class="content-container">

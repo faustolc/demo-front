@@ -6,10 +6,24 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService, User } from '../../services/auth.service';
 import { Observable } from 'rxjs';
+import { MatMenu, MatMenuModule } from '@angular/material/menu';
+import { MatDivider } from '@angular/material/divider';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatToolbarModule, MatButtonModule, MatIconModule, AsyncPipe],
+  imports: [
+    CommonModule,
+    MatToolbarModule,
+    MatMenuModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    MatMenu,
+    MatDivider,
+    MatButtonModule,
+    MatIconModule,
+    AsyncPipe
+  ],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })

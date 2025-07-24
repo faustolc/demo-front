@@ -25,3 +25,29 @@ mat-toolbar button {
 mat-toolbar button mat-icon {
   margin-right: 4px;
 }
+
+/* Coloca esto en el archivo .css o .scss de tu componente */
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.profile-avatar {
+  width: 32px; /* Ajusta el tamaño según tu diseño */
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover; /* Asegura que la imagen cubra el espacio sin deformarse */
+  cursor: pointer;
+}
+
+.user-info-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px;
+  line-height: 1.2;
+}
+
+.user-info-menu .email {
+  font-size: 0.8em;
+  color: #666;
+}
