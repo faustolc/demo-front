@@ -1,1 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/cyan-orange.css';
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Apply dark theme globally */
+body {
+  background-color: #303030;
+  color: #ffffff;
+}
+
+/* Ensure Material components use dark theme */
+.mat-app-background {
+  background-color: #303030;
+  color: #ffffff;
+}
