@@ -1,59 +1,97 @@
-# DemoFront
+# Demo Front
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+An Angular-based admin dashboard featuring user management, product management, and role-based access control.
 
-## Development server
+## Features
 
-To start a local development server, run:
+- **Authentication**
+  - Login with username/password
+  - JWT token-based authentication
+  - Protected routes with role-based guards
 
+- **User Management**
+  - View users in a table format
+  - Create, edit, and delete users
+  - Export user data to PDF and Excel
+  - Fields: name, username, email, phone, roles
+
+- **Product Management**
+  - View products in a table format
+  - Create, edit, and delete products
+  - Export product data to PDF and Excel
+  - Fields: code, name, brand, price
+
+- **Role Management**
+  - View roles in a table format
+  - Create, edit, and delete roles
+  - Export role data to PDF and Excel
+
+## Prerequisites
+
+- Node.js (v18 or higher)
+- Angular CLI
+- Backend API running on `http://localhost:8000`
+
+## Getting Started
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd demo-front
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+4. Navigate to `http://localhost:4200` in your browser
 
-## Code scaffolding
+## Project Structure
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```
+src/
+├── app/
+│   ├── auth/           # Authentication components
+│   ├── guards/         # Route guards
+│   ├── services/       # API services
+│   └── shared/         # Shared components
+├── assets/            # Static files
+└── environments/      # Environment configurations
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## API Integration
+
+The application connects to a backend API at `http://localhost:8000` with the following endpoints:
+
+- `/api/login` - Authentication
+- `/api/v1/users` - User management
+- `/api/v1/products` - Product management
+- `/api/v1/roles` - Role management
+
+## Building for Production
+
+To create a production build:
 
 ```bash
-ng generate --help
+ng build --configuration production
 ```
 
-## Building
+The build artifacts will be stored in the `dist/` directory.
 
-To build the project run:
+## Contributing
 
-```bash
-ng build
-```
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## License
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+This project is licensed under the MIT License - see the LICENSE file for details
