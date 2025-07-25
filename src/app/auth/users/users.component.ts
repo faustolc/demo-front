@@ -7,6 +7,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { UserService, User } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
 import { UserDialogComponent } from './user-dialog.component';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-users',
@@ -90,11 +91,15 @@ export class UsersComponent implements OnInit {
       data: { user, isEdit: true }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      finalize(() => {
+        this.loadUsers(); // Ensure loading is reset after dialog closes
+      })
+    ).subscribe(result => {
       if (result) {
         this.userService.editUser(user.id, result).subscribe({
           next: () => {
-            this.loadUsers(); // Refresh table after update
+            //this.loadUsers(); // Refresh table after update
           },
           error: (error) => {
             console.error('Error editing user:', error);

@@ -5,7 +5,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
-import { User } from '../../services/user.service';
+import { User, UserService } from '../../services/user.service';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { finalize } from 'rxjs';
 
 export interface UserDialogData {
   user?: User;
@@ -21,12 +24,27 @@ export interface UserDialogData {
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
   ],
   template: `
     <h2 mat-dialog-title>{{ data.isEdit ? 'Edit User' : 'Add User' }}</h2>
 
     <mat-dialog-content>
+      <!-- picture-profile -->
+      <div *ngIf="data.isEdit" class="profile-picture-container">
+        <label for="file-upload" class="profile-picture-label">
+          <img class="profile-avatar" [src]="imagePreview || data.user?.picture_profile" alt="Profile Picture">
+          <div class="overlay">
+            <mat-icon>edit</mat-icon>
+            <span>Change Photo</span>
+          </div>
+          <mat-spinner *ngIf="isUploading" diameter="50"></mat-spinner>
+        </label>
+        <input type="file" hidden id="file-upload" (change)="onFileSelected($event)" accept="image/*">
+      </div>
+
       <form [formGroup]="userForm" class="user-form">
         <mat-form-field appearance="fill">
           <mat-label>Name</mat-label>
@@ -98,15 +116,63 @@ export interface UserDialogData {
     mat-dialog-actions {
       padding: 8px 24px 20px;
     }
+
+    .profile-picture-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .profile-picture-label {
+      position: relative;
+      cursor: pointer;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    .profile-avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
+    .profile-picture-label .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .profile-picture-label:hover .overlay {
+      opacity: 1;
+    }
+    .profile-picture-label mat-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
   `]
 })
 export class UserDialogComponent implements OnInit {
   userForm: FormGroup;
+  imagePreview: string | ArrayBuffer | null = null;
+  isUploading = false;
+  private selectedFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<UserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: UserDialogData
+    @Inject(MAT_DIALOG_DATA) public data: UserDialogData,
+    private userService: UserService // Assuming you have a UserService for API calls
   ) {
     const passwordValidators = data.isEdit ? [] : [Validators.required];
 
@@ -152,5 +218,50 @@ export class UserDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.selectedFile = input.files[0];
+
+      // 1. Muestra la vista previa
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result;
+      };
+      reader.readAsDataURL(this.selectedFile);
+
+      // 2. Sube la foto inmediatamente
+      this.uploadPhoto();
+    }
+  }
+
+  uploadPhoto(): void {
+    if (!this.selectedFile || !this.data.user?.id) {
+      return;
+    }
+
+    this.isUploading = true;
+
+    this.userService.uploadProfilePhoto(this.data.user.id, this.selectedFile).pipe(
+      // ✅ finalize se ejecutará sin importar si hay éxito o error.
+      finalize(() => {
+        this.isUploading = false;
+      })
+    ).subscribe({
+      next: (updatedUser) => {
+        // La lógica de éxito permanece igual
+        if (this.data.user) {
+          this.data.user.picture_profile = updatedUser.picture_profile;
+        }
+        this.imagePreview = null;
+      },
+      error: (err) => {
+        console.error('Error uploading photo:', err);
+        this.imagePreview = null;
+        // Opcional: Mostrar un mensaje de error al usuario (ej. con MatSnackBar)
+      }
+    });
   }
 }
