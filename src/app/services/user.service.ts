@@ -9,6 +9,7 @@ export interface User {
   roles: Array<string>;
   email: string;
   phone: string;
+  picture_profile: string;
   created_at: string;
   updated_at: string;
 }
@@ -78,5 +79,28 @@ export class UserService {
       headers: this.getAuthHeaders(),
       responseType: 'blob'
     });
+  }
+
+  /*   * Subir una foto de perfil para un usuario específico.
+   * @param userId ID del usuario al que se le subirá la foto.
+   * @param file Archivo de imagen a subir.
+   * @returns Observable<User> que contiene los datos del usuario actualizado.
+   */
+  uploadProfilePhoto(userId: string, file: File): Observable<User> {
+    const formData = new FormData();
+    // La clave 'photo' debe coincidir con la que espera tu backend
+    formData.append('photo', file, file.name);
+
+    // IMPORTANTE: No establezcas 'Content-Type'.
+    // El navegador lo hará automáticamente a 'multipart/form-data' con el boundary correcto.
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<ApiResponse<User>>(`${this.apiUrl}/${userId}/photo`, formData, { headers })
+      .pipe(
+        map(response => response.data)
+      );
   }
 }
