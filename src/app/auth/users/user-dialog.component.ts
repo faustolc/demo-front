@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,6 +9,8 @@ import { User, UserService } from '../../services/user.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize } from 'rxjs';
+import { MatCheckbox } from "@angular/material/checkbox";
+import { Role, RoleService } from '../../services/role.service';
 
 export interface UserDialogData {
   user?: User;
@@ -26,8 +28,9 @@ export interface UserDialogData {
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
-  ],
+    MatProgressSpinnerModule,
+    MatCheckbox
+],
   template: `
     <h2 mat-dialog-title>{{ data.isEdit ? 'Edit User' : 'Add User' }}</h2>
 
@@ -91,6 +94,15 @@ export interface UserDialogData {
             Phone is required
           </mat-error>
         </mat-form-field>
+
+        <div class="roles-container">
+          <h3>Roles</h3>
+          <div *ngFor="let role of availableRoles" class="checkbox-item">
+            <mat-checkbox [checked]="isSelected(role.id)" (change)="onRoleChange($event.checked, role.id)">
+              {{ role.name | titlecase }}
+            </mat-checkbox>
+          </div>
+        </div>
       </form>
     </mat-dialog-content>
 
@@ -160,19 +172,28 @@ export interface UserDialogData {
       left: 50%;
       transform: translate(-50%, -50%);
     }
+    .roles-container {
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    .checkbox-item {
+      margin-bottom: 10px;
+    }
   `]
 })
 export class UserDialogComponent implements OnInit {
   userForm: FormGroup;
   imagePreview: string | ArrayBuffer | null = null;
   isUploading = false;
+  availableRoles: Role[] = [];
   private selectedFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<UserDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: UserDialogData,
-    private userService: UserService // Assuming you have a UserService for API calls
+    private userService: UserService, // Assuming you have a UserService for API calls
+    private roleService: RoleService // Assuming you have a Role service to fetch available profiles
   ) {
     const passwordValidators = data.isEdit ? [] : [Validators.required];
 
@@ -181,18 +202,31 @@ export class UserDialogComponent implements OnInit {
       username: ['', [Validators.required]],
       password: ['', passwordValidators],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required]]
+      phone: ['', [Validators.required]],
+      roles: this.fb.array([]) // Initialize roles as an empty FormArray
     });
   }
 
   ngOnInit(): void {
+    // Carga los roles disponibles desde el servicio
+    this.roleService.getRoles().subscribe(roles => {
+      this.availableRoles = roles;
+
+      // Si estamos editando, marca los roles que el usuario ya tiene
+      if (this.data.isEdit && this.data.user?.roles) {
+        const userRoleIds = this.data.user.roles.map(role => role.id);
+        userRoleIds.forEach(roleId => {
+          this.rolesFormArray.push(new FormControl(roleId));
+        });
+      }
+    });
+
     if (this.data.isEdit && this.data.user) {
       this.userForm.patchValue({
         name: this.data.user.name,
         username: this.data.user.username,
         email: this.data.user.email,
         phone: this.data.user.phone
-        // Don't set password when editing
       });
     }
   }
@@ -200,11 +234,16 @@ export class UserDialogComponent implements OnInit {
   onSave(): void {
     if (this.userForm.valid) {
       const formValue = this.userForm.value;
-      const userData: any = {
+      const userData: User = {
         name: formValue.name,
         username: formValue.username,
         email: formValue.email,
-        phone: formValue.phone
+        phone: formValue.phone,
+        roles: this.rolesFormArray.value, // Mapea los IDs de roles a objetos
+        picture_profile: this.data.isEdit ? this.data.user?.picture_profile || '' : '',
+        created_at: this.data.isEdit ? this.data.user?.created_at || '' : '',
+        updated_at: new Date().toISOString(),
+        id: this.data.isEdit ? this.data.user?.id || '' : '' // Mant
       };
 
       // Only include password if it's provided (for editing) or required (for new users)
@@ -234,6 +273,28 @@ export class UserDialogComponent implements OnInit {
 
       // 2. Sube la foto inmediatamente
       this.uploadPhoto();
+    }
+  }
+
+    // Getter para acceder fácilmente al FormArray
+  get rolesFormArray(): FormArray {
+    return this.userForm.get('roles') as FormArray;
+  }
+
+  // Verifica si un rol está seleccionado
+  isSelected(roleId: string): boolean {
+    return this.rolesFormArray.value.includes(roleId);
+  }
+
+  // Maneja el cambio de estado de un checkbox de rol
+  onRoleChange(checked: boolean, roleId: string): void {
+    if (checked) {
+      this.rolesFormArray.push(new FormControl(roleId));
+    } else {
+      const index = this.rolesFormArray.controls.findIndex(x => x.value === roleId);
+      if (index !== -1) {
+        this.rolesFormArray.removeAt(index);
+      }
     }
   }
 
