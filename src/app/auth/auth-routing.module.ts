@@ -19,19 +19,16 @@ const routes: Routes = [
       {
         path: 'products',
         component: ProductsComponent,
-        data: { roles: ['user', 'admin'] }
       },
       {
         path: 'users',
         component: UsersComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['admin'] }
       },
       {
         path: 'roles',
         component: RolesComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['admin'] }
       }
     ]
   }

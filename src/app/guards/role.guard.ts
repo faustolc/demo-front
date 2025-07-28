@@ -17,47 +17,56 @@ export class RoleGuard implements CanActivate, CanActivateChild {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean> | Promise<boolean> | boolean {
-    return this.checkRole(route, state.url);
+  ): Observable<boolean> {
+    return this.checkAccess(state.url);
   }
 
   canActivateChild(
     childRoute: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean> | Promise<boolean> | boolean {
-    return this.checkRole(childRoute, state.url);
+  ): Observable<boolean> {
+    return this.checkAccess(state.url);
   }
 
-  private checkRole(route: ActivatedRouteSnapshot, url: string): Observable<boolean> {
-    const expectedRoles = route.data['roles'] as string[];
-    
+  /**
+   * Revisa si el usuario está autenticado y si tiene acceso a la sección
+   * especificada por el último segmento de la URL.
+   * @param url La URL a la que se intenta acceder.
+   * @returns Un observable que emite `true` si se permite el acceso, `false` si no.
+   */
+  private checkAccess(url: string): Observable<boolean> {
     return this.authService.isAuthenticated$.pipe(
       take(1),
       map(isAuthenticated => {
+        // 1. Primero, verificar si el usuario está autenticado
         if (!isAuthenticated) {
-          // Store the attempted URL for redirecting after login
           localStorage.setItem('redirectUrl', url);
           this.router.navigate(['/public/login']);
           return false;
         }
 
-        // If no roles are specified, just check authentication
-        if (!expectedRoles || expectedRoles.length === 0) {
+        // 2. Extraer el nombre de la sección de la URL
+        const urlSegments = url.split('/').filter(segment => segment); // Elimina segmentos vacíos
+        const section = urlSegments[urlSegments.length - 1];
+
+        // Si la URL es la base '/auth', se permite el paso al layout principal.
+        if (section === 'auth' || !section) {
           return true;
         }
 
-        // Check if user has required roles
-        const hasRequiredRole = this.authService.hasAnyRole(expectedRoles);
-        
-        if (!hasRequiredRole) {
-          // Navigate to access denied page or back to dashboard
-          this.router.navigate(['/auth'], { 
+        // 3. Usar el servicio para verificar si el usuario tiene acceso a esta sección.
+        // El método hasSectionAccess ya contiene la lógica de revisar roles.
+        const hasAccess = this.authService.hasSectionAccess(section);
+
+        if (hasAccess) {
+          return true; // 4. Si tiene acceso, permitir la navegación
+        } else {
+          // 5. Si no tiene acceso, redirigir y denegar
+          this.router.navigate(['/auth'], {
             queryParams: { error: 'access-denied' }
           });
           return false;
         }
-
-        return true;
       })
     );
   }

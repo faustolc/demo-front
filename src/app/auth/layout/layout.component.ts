@@ -42,7 +42,7 @@ export class LayoutComponent {
     this.router.navigate(['/public/login']);
   }
 
-  hasRole(role: string): boolean {
-    return this.authService.hasRole(role);
+  hasSection(section: string): boolean {
+    return this.authService.hasSectionAccess(section);
   }
 }
