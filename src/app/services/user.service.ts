@@ -1,17 +1,29 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { Role } from './role.service';
 
 export interface User {
   id: string;
   name: string;
   username: string;
-  roles: Array<string>;
+  roles: Array<Role>;
   email: string;
   phone: string;
-  picture_profile: string;
+  picture_profile?: string;
   created_at: string;
   updated_at: string;
+  password?: string; // Optional for editing
+}
+
+// Interfaz para los datos que se envían al crear/editar un usuario
+export interface UserPayload {
+  name: string;
+  username: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  roles?: string[]; // Se usarán los IDs de los roles
 }
 
 interface ApiResponse<T> {
@@ -51,16 +63,26 @@ export class UserService {
     );
   }
 
-  addUser(user: { name: string; username: string; password: string }): Observable<User> {
-    return this.http.post<ApiResponse<User>>(this.apiUrl, user, {
+  // --- MÉTODO MODIFICADO ---
+  addUser(user: UserPayload): Observable<User> {
+    // Remove roles from the user object before sending to the backend
+    const { roles, ...rest } = user;
+
+    return this.http.post<ApiResponse<User>>(this.apiUrl, rest, {
       headers: this.getAuthHeaders()
     }).pipe(
       map(response => response.data)
     );
   }
 
-  editUser(id: string, user: { name: string; username: string; password?: string }): Observable<User> {
-    return this.http.put<ApiResponse<User>>(`${this.apiUrl}/${id}`, user, {
+  editUser(id: string, user: User): Observable<User> {
+    const { roles, ...rest } = user; // Exclude roles from the update
+    const payload: any = {
+      ...rest,
+      role_ids: roles // Use role_ids instead of roles
+    };
+
+    return this.http.put<ApiResponse<User>>(`${this.apiUrl}/${id}`, payload, {
       headers: this.getAuthHeaders()
     }).pipe(
       map(response => response.data)

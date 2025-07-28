@@ -12,7 +12,13 @@ export interface User {
   picture_profile: string;
   created_at: string;
   updated_at: string;
-  roles: string[];
+  roles: Role[];
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  authorized_sections: string[];
 }
 
 @Injectable({
@@ -103,19 +109,14 @@ export class AuthService {
   }
 
   /**
-   * Check if user has specific role
+   *  Check if user has access to a specific section
+   *  based on their roles and authorized sections.
+   * @param section name of the section to check access for
+   * @returns boolean indicating if user has access to the section
    */
-  hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
-    return user ? user.roles.includes(role) : false;
-  }
-
-  /**
-   * Check if user has any of the specified roles
-   */
-  hasAnyRole(roles: string[]): boolean {
+  hasSectionAccess(section: string): boolean {
     const user = this.getCurrentUser();
     if (!user) return false;
-    return roles.some(role => user.roles.includes(role));
+    return user.roles.some(role => role.authorized_sections.includes(section));
   }
 }

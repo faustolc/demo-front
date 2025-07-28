@@ -5,6 +5,8 @@ import { Observable, map } from 'rxjs';
 export interface Role {
   id: string;
   name: string;
+  authorized_sections: string[];
+  updated_at: string;
   created_at: string;
 }
 
@@ -37,7 +39,7 @@ export class RoleService {
     );
   }
 
-  addRole(role: { name: string }): Observable<Role> {
+  addRole(role: Role): Observable<Role> {
     return this.http.post<ApiResponse<Role>>(this.apiUrl, role, {
       headers: this.getAuthHeaders()
     }).pipe(
@@ -45,7 +47,7 @@ export class RoleService {
     );
   }
 
-  editRole(id: string, role: { name: string }): Observable<Role> {
+  editRole(id: string, role:Role): Observable<Role> {
     return this.http.put<ApiResponse<Role>>(`${this.apiUrl}/${id}`, role, {
       headers: this.getAuthHeaders()
     }).pipe(

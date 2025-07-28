@@ -3,17 +3,17 @@
   <span class="spacer"></span>
 
   <!-- Navigation buttons -->
-  <button mat-button routerLink="/auth/products" routerLinkActive="active">
+  <button mat-button routerLink="/auth/products" routerLinkActive="active" *ngIf="hasSection('products')">
     <mat-icon>inventory</mat-icon>
     Products
   </button>
 
-  <button mat-button routerLink="/auth/users" routerLinkActive="active" *ngIf="hasRole('admin')">
+  <button mat-button routerLink="/auth/users" routerLinkActive="active" *ngIf="hasSection('users')">
     <mat-icon>people</mat-icon>
     Users
   </button>
 
-  <button mat-button routerLink="/auth/roles" routerLinkActive="active" *ngIf="hasRole('admin')">
+  <button mat-button routerLink="/auth/roles" routerLinkActive="active" *ngIf="hasSection('roles')">
     <mat-icon>admin_panel_settings</mat-icon>
     Roles
   </button>
