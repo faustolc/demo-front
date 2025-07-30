@@ -78,4 +78,21 @@ export class LoginComponent {
     }
     return '';
   }
+
+  sendMail() {
+    const username = this.loginForm.get('username')?.value;
+    if (!username) {
+      this.errorMessage = 'Please enter your email to reset your password.';
+      return;
+    }
+    this.authService.sendPasswordResetEmail(username).subscribe({
+      next: () => {
+        this.errorMessage = 'We sent you an email with your password.';
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to send email. Please try again later.';
+        console.error('Send email error:', error);
+      }
+    });
+  }
 }
