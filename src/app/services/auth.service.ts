@@ -119,4 +119,20 @@ export class AuthService {
     if (!user) return false;
     return user.roles.some(role => role.authorized_sections.includes(section));
   }
+
+  /**
+   * Send a password reset email
+   * @param username user with email address
+   */
+  sendPasswordResetEmail(username: string): Observable<any> {
+    return this.http.post<any>('http://localhost:8000/api/password-reset', { username }).pipe(
+      map(response => {
+        return response; // Assuming response contains success message
+      }),
+      catchError(error => {
+        console.error('Password reset error:', error);
+        throw error; // Propagate the error
+      })
+    );
+  }
 }
